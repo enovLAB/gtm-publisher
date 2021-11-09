@@ -60,16 +60,14 @@ var googleapis_1 = require("googleapis");
 var process_1 = require("process");
 var fs = __importStar(require("@supercharge/fs"));
 var yargs = __importStar(require("yargs"));
+var pkj = require('../package.json');
 var scopes = [
     'https://www.googleapis.com/auth/tagmanager.edit.containers',
     'https://www.googleapis.com/auth/tagmanager.edit.containerversions',
     'https://www.googleapis.com/auth/tagmanager.publish'
 ];
 var tagmanager = googleapis_1.google.tagmanager('v2');
-var auth = new googleapis_1.google.auth.GoogleAuth({
-    keyFile: './yoop-dev1-na-4dcd624a8fe9.json',
-    scopes: scopes
-});
+var auth = new googleapis_1.google.auth.GoogleAuth();
 var getAccountId = function () { return __awaiter(void 0, void 0, void 0, function () {
     var authClient, accounts;
     var _a;
@@ -119,82 +117,89 @@ var getWorkspaceId = function (accountId, containerId) { return __awaiter(void 0
     });
 }); };
 function main() {
-    var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var argv, account, _b, container, _c, workspace, _d, _e, path, authClient, data, res, template, tempAvatar;
-        return __generator(this, function (_f) {
-            switch (_f.label) {
-                case 0: return [4 /*yield*/, yargs
-                        .option('googleJWT', {
-                        alias: 'j',
-                        description: 'The path of the google service token in JSON format',
-                        type: 'string',
-                        demandOption: true,
-                    })
-                        .option('templateId', {
-                        alias: 't',
-                        description: 'The tag template Id',
-                        type: 'string',
-                        demandOption: true,
-                    })
-                        .option('templatePath', {
-                        alias: 'p',
-                        description: 'the path to the template file',
-                        type: 'string',
-                        demandOption: true,
-                    })
-                        .option('accountId', {
-                        alias: 'a',
-                        description: 'The GTM account Id',
-                        type: 'string'
-                    })
-                        .option('containerId', {
-                        alias: 'c',
-                        description: 'The GTM container Id',
-                        type: 'string'
-                    })
-                        .option('workspaceId', {
-                        alias: 'w',
-                        description: 'The GTM workspace Id',
-                        type: 'string',
-                    })
-                        .help()
-                        .alias('help', 'h')
-                        .argv];
+        var argv, credentials, account, _a, container, _b, workspace, _c, _d, path, authClient, data, res;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
+                case 0:
+                    console.info("Starting gtm-template-publisher v." + pkj.version);
+                    return [4 /*yield*/, yargs
+                            .option('googleJWT', {
+                            alias: 'j',
+                            description: 'The path of the google service token in JSON format',
+                            type: 'string',
+                            demandOption: true,
+                        })
+                            .option('templateId', {
+                            alias: 't',
+                            description: 'The tag template Id',
+                            type: 'string',
+                            demandOption: true,
+                        })
+                            .option('templatePath', {
+                            alias: 'p',
+                            description: 'the path to the template file',
+                            type: 'string',
+                            demandOption: true,
+                        })
+                            .option('accountId', {
+                            alias: 'a',
+                            description: 'The GTM account Id',
+                            type: 'string'
+                        })
+                            .option('containerId', {
+                            alias: 'c',
+                            description: 'The GTM container Id',
+                            type: 'string'
+                        })
+                            .option('workspaceId', {
+                            alias: 'w',
+                            description: 'The GTM workspace Id',
+                            type: 'string',
+                        })
+                            .help()
+                            .alias('help', 'h')
+                            .argv];
                 case 1:
-                    argv = _f.sent();
-                    _b = argv.accountId;
-                    if (_b) return [3 /*break*/, 3];
+                    argv = _e.sent();
+                    credentials = JSON.parse(argv.googleJWT);
+                    auth = new googleapis_1.google.auth.GoogleAuth({
+                        credentials: credentials,
+                        scopes: scopes
+                    });
+                    console.log("created auth");
+                    _a = argv.accountId;
+                    if (_a) return [3 /*break*/, 3];
                     return [4 /*yield*/, getAccountId()];
                 case 2:
-                    _b = (_f.sent());
-                    _f.label = 3;
+                    _a = (_e.sent());
+                    _e.label = 3;
                 case 3:
-                    account = _b;
+                    account = _a;
                     if (!account) {
                         console.error("Account not found");
                         (0, process_1.exit)(1);
                     }
-                    _c = argv.containerId;
-                    if (_c) return [3 /*break*/, 5];
+                    _b = argv.containerId;
+                    if (_b) return [3 /*break*/, 5];
                     return [4 /*yield*/, getContainerId(account)];
                 case 4:
-                    _c = (_f.sent());
-                    _f.label = 5;
+                    _b = (_e.sent());
+                    _e.label = 5;
                 case 5:
-                    container = _c;
+                    container = _b;
                     if (!container) {
                         console.error("container not found");
                         (0, process_1.exit)(1);
                     }
-                    _d = argv.workspaceId;
-                    if (_d) return [3 /*break*/, 7];
+                    _c = argv.workspaceId;
+                    if (_c) return [3 /*break*/, 7];
                     return [4 /*yield*/, getWorkspaceId(account, container)];
                 case 6:
-                    _d = (_f.sent());
-                    _f.label = 7;
+                    _c = (_e.sent());
+                    _e.label = 7;
                 case 7:
-                    workspace = _d;
+                    workspace = _c;
                     if (!container) {
                         console.error("workspace not found");
                         (0, process_1.exit)(1);
@@ -203,14 +208,14 @@ function main() {
                         console.error("missing template id");
                         (0, process_1.exit)(1);
                     }
-                    _e = !argv.templatePath;
-                    if (_e) return [3 /*break*/, 9];
+                    _d = !argv.templatePath;
+                    if (_d) return [3 /*break*/, 9];
                     return [4 /*yield*/, fs.exists(argv.templatePath)];
                 case 8:
-                    _e = !(_f.sent());
-                    _f.label = 9;
+                    _d = !(_e.sent());
+                    _e.label = 9;
                 case 9:
-                    if (_e) {
+                    if (_d) {
                         console.error("invalid path provided");
                         (0, process_1.exit)(1);
                     }
@@ -218,24 +223,17 @@ function main() {
                     console.log("updating template at path " + path);
                     return [4 /*yield*/, auth.getClient()];
                 case 10:
-                    authClient = _f.sent();
+                    authClient = _e.sent();
                     return [4 /*yield*/, fs.content(argv.templatePath)];
                 case 11:
-                    data = _f.sent();
+                    data = _e.sent();
                     return [4 /*yield*/, tagmanager.accounts.containers.workspaces.templates.update({
                             path: path, auth: authClient, requestBody: {
                                 templateData: data
                             }
                         })];
                 case 12:
-                    res = _f.sent();
-                    template = ((_a = res === null || res === void 0 ? void 0 : res.data) === null || _a === void 0 ? void 0 : _a.templateData) || "";
-                    return [4 /*yield*/, fs.tempFile('test.tpl')];
-                case 13:
-                    tempAvatar = _f.sent();
-                    return [4 /*yield*/, fs.writeFile(tempAvatar, template)];
-                case 14:
-                    _f.sent();
+                    res = _e.sent();
                     console.log("update completed with status code " + JSON.stringify(res.statusText));
                     return [2 /*return*/];
             }

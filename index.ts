@@ -2,8 +2,8 @@
 import { google } from 'googleapis';
 import { exit } from 'process';
 import  * as fs from '@supercharge/fs';
-
 import * as yargs from 'yargs'
+const pkj = require('../package.json')
 
 const scopes =  [
     'https://www.googleapis.com/auth/tagmanager.edit.containers',
@@ -12,9 +12,7 @@ const scopes =  [
 ]
 const tagmanager = google.tagmanager('v2');
 
-const auth = new google.auth.GoogleAuth({
-    keyFile: './yoop-dev1-na-4dcd624a8fe9.json', scopes
-});
+let auth = new google.auth.GoogleAuth();
 
 const getAccountId = async () => {
     const authClient = await auth.getClient();
@@ -41,6 +39,8 @@ const getWorkspaceId = async (accountId: string, containerId: string) => {
 }
 
 async function main () {
+    console.info(`Starting gtm-template-publisher v.${pkj.version}`)
+
     const argv = await yargs
     .option('googleJWT', {
         alias: 'j',
@@ -79,6 +79,13 @@ async function main () {
     .alias('help', 'h')
     .argv;
 
+    const credentials = JSON.parse(argv.googleJWT) 
+    auth = new google.auth.GoogleAuth({
+        credentials: credentials, scopes
+    });
+
+    console.log("created auth")
+
     let account = argv.accountId || await getAccountId() 
     if (!account) {
         console.error("Account not found")
@@ -107,22 +114,16 @@ async function main () {
         exit(1)
     }
 
-
-    let path = `accounts/${account}/containers/${container}/workspaces/${workspace}/templates/${argv.templateId}`
-    console.log(`updating template at path ${path}`)
+    let path = `accounts/${account}/containers/${container}/workspaces/${workspace}/templates/${argv.templateId}`;
+    console.log(`updating template at path ${path}`);
 
     const authClient = await auth.getClient();
-    const data = await fs.content(argv.templatePath)
+    const data = await fs.content(argv.templatePath);
     const res = await tagmanager.accounts.containers.workspaces.templates.update({
         path: path, auth: authClient, requestBody: {
             templateData: data
         }
-    })
-
-    let template = res?.data?.templateData || ""
-
-    const tempAvatar = await fs.tempFile('test.tpl')
-    await fs.writeFile(tempAvatar, template)
+    });
 
     console.log(`update completed with status code ${JSON.stringify(res.statusText)}`);
 }
