@@ -8,6 +8,7 @@ export interface Args {
 export interface TemplateArgs extends Args {
     templatePath: string;
     templateId: string;
+    output?: string
 }
 
 export interface ListArgs extends Args {

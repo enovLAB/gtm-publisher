@@ -64,42 +64,64 @@ var accountHelper_1 = require("./accountHelper");
 var pkj = require('../package.json');
 var tagmanager = googleapis_1.google.tagmanager('v2');
 var updateTagTemplate = function (argv) { return __awaiter(void 0, void 0, void 0, function () {
-    var templateId, templatePath, _a, auth, _b, accountId, containerId, workspaceId, path, authClient, data, res;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var templateId, templatePath, _a, googleAuth, auth, _b, accountId, containerId, workspaceId, parent, path, data, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
                 templateId = argv.templateId, templatePath = argv.templatePath;
                 _a = !templatePath;
                 if (_a) return [3 /*break*/, 2];
                 return [4 /*yield*/, fs.exists(argv.templatePath)];
             case 1:
-                _a = !(_c.sent());
-                _c.label = 2;
+                _a = !(_d.sent());
+                _d.label = 2;
             case 2:
                 if (_a) {
                     console.error("invalid path provided");
                     (0, process_1.exit)(1);
                 }
-                auth = (0, accountHelper_1.createAuth)(argv);
-                return [4 /*yield*/, (0, accountHelper_1.getAccountInfo)(argv, auth)];
+                googleAuth = (0, accountHelper_1.createAuth)(argv);
+                return [4 /*yield*/, googleAuth.getClient()];
             case 3:
-                _b = _c.sent(), accountId = _b.accountId, containerId = _b.containerId, workspaceId = _b.workspaceId;
-                path = "accounts/" + accountId + "/containers/" + containerId + "/workspaces/" + workspaceId + "/templates/" + templateId;
-                console.log("updating template at path " + path);
-                return [4 /*yield*/, auth.getClient()];
+                auth = _d.sent();
+                return [4 /*yield*/, (0, accountHelper_1.getAccountInfo)(argv, googleAuth)];
             case 4:
-                authClient = _c.sent();
+                _b = _d.sent(), accountId = _b.accountId, containerId = _b.containerId, workspaceId = _b.workspaceId;
+                parent = "accounts/" + accountId + "/containers/" + containerId + "/workspaces/" + workspaceId;
+                path = parent + "/templates/" + templateId;
                 return [4 /*yield*/, fs.content(argv.templatePath)];
             case 5:
-                data = _c.sent();
+                data = _d.sent();
+                _d.label = 6;
+            case 6:
+                _d.trys.push([6, 9, , 11]);
+                return [4 /*yield*/, tagmanager.accounts.containers.workspaces.templates.get({
+                        path: path,
+                        auth: auth
+                    })];
+            case 7:
+                _d.sent();
+                console.log("updating template at path " + path);
                 return [4 /*yield*/, tagmanager.accounts.containers.workspaces.templates.update({
-                        path: path, auth: authClient, requestBody: {
+                        path: path,
+                        auth: auth,
+                        requestBody: {
                             templateData: data
                         }
                     })];
-            case 6:
-                res = _c.sent();
-                return [2 /*return*/];
+            case 8: return [2 /*return*/, _d.sent()];
+            case 9:
+                _c = _d.sent();
+                console.log("creating new template in " + parent);
+                return [4 /*yield*/, tagmanager.accounts.containers.workspaces.templates.create({
+                        parent: parent,
+                        auth: auth,
+                        requestBody: {
+                            templateData: data
+                        }
+                    })];
+            case 10: return [2 /*return*/, _d.sent()];
+            case 11: return [2 /*return*/];
         }
     });
 }); };
@@ -232,12 +254,21 @@ function main() {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, yargs
-                        .command('updateTagTemplate <templateId> <templatePath>', 'make a get HTTP request', function () { }, function (argv) { return __awaiter(_this, void 0, void 0, function () {
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
+                        .command('updateTagTemplate <templateId> <templatePath> [output]', 'make a get HTTP request', function () { }, function (argv) { return __awaiter(_this, void 0, void 0, function () {
+                        var res, _a, templateId, name, fingerprint, templateData, outputData;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
                                 case 0: return [4 /*yield*/, updateTagTemplate(argv)];
                                 case 1:
-                                    _a.sent();
+                                    res = _b.sent();
+                                    _a = res.data, templateId = _a.templateId, name = _a.name, fingerprint = _a.fingerprint, templateData = _a.templateData;
+                                    outputData = JSON.stringify({ templateId: templateId, name: name, fingerprint: fingerprint, templateData: templateData }, null, 2);
+                                    if (argv.output) {
+                                        fs.writeFile(argv.output, outputData);
+                                    }
+                                    else {
+                                        console.log(outputData);
+                                    }
                                     return [2 /*return*/];
                             }
                         });
