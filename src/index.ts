@@ -70,6 +70,19 @@ const createWorkspace = async (argv: any) => {
     })
 }
 
+const createVersion = async (argv: any) => {
+    const { name } = argv
+    const auth = createAuth(argv)
+    const { accountId, containerId, workspaceId } = await getAccountInfo(argv, auth)
+
+    const authClient = await auth.getClient();
+    return await tagmanager.accounts.containers.workspaces.create_version({
+        path: `accounts/${accountId}/containers/${containerId}/workspaces/${workspaceId}`,
+        auth: authClient,
+        requestBody: { name }
+    })
+}
+
 const listTags = async (argv: any) => {
     const auth = createAuth(argv)
     const { accountId, containerId, workspaceId } = await getAccountInfo(argv, auth)
@@ -117,24 +130,43 @@ const getTemplate = async (argv: any) => {
 async function main() {
     const argv = await yargs
         .command('updateTagTemplate <templateId> <templatePath> [output]', 'make a get HTTP request', () => { }, async (argv: TemplateArgs) => {
-            const res = await updateTagTemplate(argv)
-            const { templateId, name, fingerprint, templateData } = res.data
-            const outputData =  JSON.stringify(
-                { templateId, name, fingerprint, templateData }
-            , null, 2)
-            if (argv.output) {
-                fs.writeFile(argv.output, outputData)
-            } else {
-                console.log(outputData)
+            try {
+                const res = await updateTagTemplate(argv)
+                const { templateId, name, fingerprint, templateData } = res.data
+                const outputData = JSON.stringify(
+                    { templateId, name, fingerprint, templateData }
+                    , null, 2)
+                if (argv.output) {
+                    fs.writeFile(argv.output, outputData)
+                } else {
+                    console.log(outputData)
+                }
+            } catch (e) {
+                console.error(e)
+                exit(3)
             }
         })
         .command('getTemplate <templateId>', 'make a get HTTP request', () => { }, async (argv: TemplateArgs) => {
             const res = await getTemplate(argv)
             console.log(res.data.templateData)
         })
-        .command('create workspace <name>', 'lists the objects of the given type', () => { }, async (argv: ListArgs) => {
-            const res = await createWorkspace(argv);
-            console.log(res.data.workspaceId)
+        .command('createWorkspace <name>', 'lists the objects of the given type', () => { }, async (argv: ListArgs) => {
+            try {
+                const res = await createWorkspace(argv);
+                console.log(res.data.workspaceId)
+            } catch (e) {
+                console.error(e)
+                exit(3)
+            }
+        })
+        .command('stampVersion <name>', 'lists the objects of the given type', () => { }, async (argv: ListArgs) => {
+            try {
+                const res = await createVersion(argv);
+                console.log(JSON.stringify(res.data.containerVersion))
+            } catch (e) {
+                console.error(e)
+                exit(3)
+            }
         })
         .command('list <type> [output]', 'lists the objects of the given type', () => { }, async (argv: ListArgs) => {
             const { output } = argv

@@ -167,6 +167,28 @@ var createWorkspace = function (argv) { return __awaiter(void 0, void 0, void 0,
         }
     });
 }); };
+var createVersion = function (argv) { return __awaiter(void 0, void 0, void 0, function () {
+    var name, auth, _a, accountId, containerId, workspaceId, authClient;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                name = argv.name;
+                auth = (0, accountHelper_1.createAuth)(argv);
+                return [4 /*yield*/, (0, accountHelper_1.getAccountInfo)(argv, auth)];
+            case 1:
+                _a = _b.sent(), accountId = _a.accountId, containerId = _a.containerId, workspaceId = _a.workspaceId;
+                return [4 /*yield*/, auth.getClient()];
+            case 2:
+                authClient = _b.sent();
+                return [4 /*yield*/, tagmanager.accounts.containers.workspaces.create_version({
+                        path: "accounts/" + accountId + "/containers/" + containerId + "/workspaces/" + workspaceId,
+                        auth: authClient,
+                        requestBody: { name: name }
+                    })];
+            case 3: return [2 /*return*/, _b.sent()];
+        }
+    });
+}); };
 var listTags = function (argv) { return __awaiter(void 0, void 0, void 0, function () {
     var auth, _a, accountId, containerId, workspaceId, authClient;
     return __generator(this, function (_b) {
@@ -255,21 +277,29 @@ function main() {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, yargs
                         .command('updateTagTemplate <templateId> <templatePath> [output]', 'make a get HTTP request', function () { }, function (argv) { return __awaiter(_this, void 0, void 0, function () {
-                        var res, _a, templateId, name, fingerprint, templateData, outputData;
+                        var res, _a, templateId, name_1, fingerprint, templateData, outputData, e_1;
                         return __generator(this, function (_b) {
                             switch (_b.label) {
-                                case 0: return [4 /*yield*/, updateTagTemplate(argv)];
+                                case 0:
+                                    _b.trys.push([0, 2, , 3]);
+                                    return [4 /*yield*/, updateTagTemplate(argv)];
                                 case 1:
                                     res = _b.sent();
-                                    _a = res.data, templateId = _a.templateId, name = _a.name, fingerprint = _a.fingerprint, templateData = _a.templateData;
-                                    outputData = JSON.stringify({ templateId: templateId, name: name, fingerprint: fingerprint, templateData: templateData }, null, 2);
+                                    _a = res.data, templateId = _a.templateId, name_1 = _a.name, fingerprint = _a.fingerprint, templateData = _a.templateData;
+                                    outputData = JSON.stringify({ templateId: templateId, name: name_1, fingerprint: fingerprint, templateData: templateData }, null, 2);
                                     if (argv.output) {
                                         fs.writeFile(argv.output, outputData);
                                     }
                                     else {
                                         console.log(outputData);
                                     }
-                                    return [2 /*return*/];
+                                    return [3 /*break*/, 3];
+                                case 2:
+                                    e_1 = _b.sent();
+                                    console.error(e_1);
+                                    (0, process_1.exit)(3);
+                                    return [3 /*break*/, 3];
+                                case 3: return [2 /*return*/];
                             }
                         });
                     }); })
@@ -285,15 +315,43 @@ function main() {
                             }
                         });
                     }); })
-                        .command('create workspace <name>', 'lists the objects of the given type', function () { }, function (argv) { return __awaiter(_this, void 0, void 0, function () {
-                        var res;
+                        .command('createWorkspace <name>', 'lists the objects of the given type', function () { }, function (argv) { return __awaiter(_this, void 0, void 0, function () {
+                        var res, e_2;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
-                                case 0: return [4 /*yield*/, createWorkspace(argv)];
+                                case 0:
+                                    _a.trys.push([0, 2, , 3]);
+                                    return [4 /*yield*/, createWorkspace(argv)];
                                 case 1:
                                     res = _a.sent();
                                     console.log(res.data.workspaceId);
-                                    return [2 /*return*/];
+                                    return [3 /*break*/, 3];
+                                case 2:
+                                    e_2 = _a.sent();
+                                    console.error(e_2);
+                                    (0, process_1.exit)(3);
+                                    return [3 /*break*/, 3];
+                                case 3: return [2 /*return*/];
+                            }
+                        });
+                    }); })
+                        .command('stampVersion <name>', 'lists the objects of the given type', function () { }, function (argv) { return __awaiter(_this, void 0, void 0, function () {
+                        var res, e_3;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    _a.trys.push([0, 2, , 3]);
+                                    return [4 /*yield*/, createVersion(argv)];
+                                case 1:
+                                    res = _a.sent();
+                                    console.log(JSON.stringify(res.data.containerVersion));
+                                    return [3 /*break*/, 3];
+                                case 2:
+                                    e_3 = _a.sent();
+                                    console.error(e_3);
+                                    (0, process_1.exit)(3);
+                                    return [3 /*break*/, 3];
+                                case 3: return [2 /*return*/];
                             }
                         });
                     }); })
@@ -381,7 +439,7 @@ function main() {
     });
 }
 (function () { return __awaiter(void 0, void 0, void 0, function () {
-    var e_1;
+    var e_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -391,8 +449,8 @@ function main() {
                 _a.sent();
                 return [3 /*break*/, 3];
             case 2:
-                e_1 = _a.sent();
-                console.error("Failed to update template: " + e_1);
+                e_4 = _a.sent();
+                console.error("Failed to update template: " + e_4);
                 (0, process_1.exit)(2);
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
