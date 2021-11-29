@@ -64,17 +64,17 @@ var accountHelper_1 = require("./accountHelper");
 var pkj = require('../package.json');
 var tagmanager = googleapis_1.google.tagmanager('v2');
 var updateTagTemplate = function (argv) { return __awaiter(void 0, void 0, void 0, function () {
-    var templateId, templatePath, _a, googleAuth, auth, _b, accountId, containerId, workspaceId, parent, path, data, _c;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
+    var templateId, templatePath, _a, googleAuth, auth, _b, accountId, containerId, workspaceId, parent, data, template, path;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
                 templateId = argv.templateId, templatePath = argv.templatePath;
                 _a = !templatePath;
                 if (_a) return [3 /*break*/, 2];
                 return [4 /*yield*/, fs.exists(argv.templatePath)];
             case 1:
-                _a = !(_d.sent());
-                _d.label = 2;
+                _a = !(_c.sent());
+                _c.label = 2;
             case 2:
                 if (_a) {
                     console.error("invalid path provided");
@@ -83,35 +83,16 @@ var updateTagTemplate = function (argv) { return __awaiter(void 0, void 0, void 
                 googleAuth = (0, accountHelper_1.createAuth)(argv);
                 return [4 /*yield*/, googleAuth.getClient()];
             case 3:
-                auth = _d.sent();
+                auth = _c.sent();
                 return [4 /*yield*/, (0, accountHelper_1.getAccountInfo)(argv, googleAuth)];
             case 4:
-                _b = _d.sent(), accountId = _b.accountId, containerId = _b.containerId, workspaceId = _b.workspaceId;
+                _b = _c.sent(), accountId = _b.accountId, containerId = _b.containerId, workspaceId = _b.workspaceId;
                 parent = "accounts/" + accountId + "/containers/" + containerId + "/workspaces/" + workspaceId;
-                path = parent + "/templates/" + templateId;
                 return [4 /*yield*/, fs.content(argv.templatePath)];
             case 5:
-                data = _d.sent();
-                _d.label = 6;
-            case 6:
-                _d.trys.push([6, 9, , 11]);
-                return [4 /*yield*/, tagmanager.accounts.containers.workspaces.templates.get({
-                        path: path,
-                        auth: auth
-                    })];
-            case 7:
-                _d.sent();
-                console.log("updating template at path " + path);
-                return [4 /*yield*/, tagmanager.accounts.containers.workspaces.templates.update({
-                        path: path,
-                        auth: auth,
-                        requestBody: {
-                            templateData: data
-                        }
-                    })];
-            case 8: return [2 /*return*/, _d.sent()];
-            case 9:
-                _c = _d.sent();
+                data = _c.sent();
+                template = parseInt(templateId);
+                if (!isNaN(template)) return [3 /*break*/, 7];
                 console.log("creating new template in " + parent);
                 return [4 /*yield*/, tagmanager.accounts.containers.workspaces.templates.create({
                         parent: parent,
@@ -120,8 +101,18 @@ var updateTagTemplate = function (argv) { return __awaiter(void 0, void 0, void 
                             templateData: data
                         }
                     })];
-            case 10: return [2 /*return*/, _d.sent()];
-            case 11: return [2 /*return*/];
+            case 6: return [2 /*return*/, _c.sent()];
+            case 7:
+                path = parent + "/templates/" + template;
+                console.log("updating template at path " + path);
+                return [4 /*yield*/, tagmanager.accounts.containers.workspaces.templates.update({
+                        path: path,
+                        auth: auth,
+                        requestBody: {
+                            templateData: data
+                        }
+                    })];
+            case 8: return [2 /*return*/, _c.sent()];
         }
     });
 }); };

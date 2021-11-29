@@ -21,22 +21,10 @@ const updateTagTemplate = async (argv: TemplateArgs) => {
     const { accountId, containerId, workspaceId } = await getAccountInfo(argv, googleAuth)
 
     let parent = `accounts/${accountId}/containers/${containerId}/workspaces/${workspaceId}`
-    let path = `${parent}/templates/${templateId}`;
 
     const data = await fs.content(argv.templatePath);
-
-    try {
-        await tagmanager.accounts.containers.workspaces.templates.get({
-            path, auth
-        })
-
-        console.log(`updating template at path ${path}`);
-        return await tagmanager.accounts.containers.workspaces.templates.update({
-            path: path, auth, requestBody: {
-                templateData: data
-            }
-        });
-    } catch {
+    const template = parseInt(templateId)
+    if (isNaN(template)) {
         console.log(`creating new template in ${parent}`);
         return await tagmanager.accounts.containers.workspaces.templates.create({
             parent, auth, requestBody: {
@@ -44,6 +32,14 @@ const updateTagTemplate = async (argv: TemplateArgs) => {
             }
         });
     }
+
+    let path = `${parent}/templates/${template}`;
+    console.log(`updating template at path ${path}`);
+    return await tagmanager.accounts.containers.workspaces.templates.update({
+        path: path, auth, requestBody: {
+            templateData: data
+        }
+    });
 }
 
 const listVariables = async (argv: any) => {
