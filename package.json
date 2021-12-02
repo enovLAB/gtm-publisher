@@ -1,6 +1,6 @@
 {
   "name": "gtm-template-publisher",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "main": "dist/index.js",
   "license": "MIT",
   "dependencies": {
@@ -10,7 +10,8 @@
     "yargs": "^17.2.1"
   },
   "scripts": {
-    "start": "npx tsc && node ."
+    "start": "npx tsc && node .",
+    "dev": "npx tsc -w"
   },
   "devDependencies": {
     "@types/gapi": "^0.0.41",
