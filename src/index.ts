@@ -3,7 +3,7 @@ import * as fs from '@supercharge/fs';
 import { google, tagmanager_v2 } from 'googleapis';
 import { exit } from 'process';
 import * as yargs from 'yargs';
-import { createAuth, getAccountInfo } from './accountHelper';
+import { createAuth } from './accountHelper';
 import { ListArgs, TemplateArgs } from './types';
 const pkj = require('../package.json')
 
@@ -18,7 +18,7 @@ const updateTagTemplate = async (argv: TemplateArgs) => {
 
     const googleAuth = createAuth(argv)
     const auth = await googleAuth.getClient()
-    const { accountId, containerId, workspaceId } = await getAccountInfo(argv, googleAuth)
+    const { accountId, containerId, workspaceId } = argv
 
     let parent = `accounts/${accountId}/containers/${containerId}/workspaces/${workspaceId}`
 
@@ -44,7 +44,7 @@ const updateTagTemplate = async (argv: TemplateArgs) => {
 
 const listVariables = async (argv: any) => {
     const auth = createAuth(argv)
-    const { accountId, containerId, workspaceId } = await getAccountInfo(argv, auth)
+    const { accountId, containerId, workspaceId } = argv
 
     const authClient = await auth.getClient();
     return await tagmanager.accounts.containers.workspaces.variables.list({
@@ -56,7 +56,7 @@ const listVariables = async (argv: any) => {
 const createWorkspace = async (argv: any) => {
     const { name } = argv
     const auth = createAuth(argv)
-    const { accountId, containerId } = await getAccountInfo(argv, auth)
+    const { accountId, containerId } = argv
 
     const authClient = await auth.getClient();
     return await tagmanager.accounts.containers.workspaces.create({
@@ -66,10 +66,20 @@ const createWorkspace = async (argv: any) => {
     })
 }
 
+const deleteWorkspace = async (argv: any) => {
+    const auth = createAuth(argv)
+    const { accountId, containerId, workspaceId } = argv
+    const authClient = await auth.getClient();
+    return await tagmanager.accounts.containers.workspaces.delete({
+        path: `accounts/${accountId}/containers/${containerId}/workspaces/${workspaceId}`,
+        auth: authClient
+    })
+}
+
 const createVersion = async (argv: any) => {
     const { name } = argv
     const auth = createAuth(argv)
-    const { accountId, containerId, workspaceId } = await getAccountInfo(argv, auth)
+    const { accountId, containerId, workspaceId } = argv
 
     const authClient = await auth.getClient();
     return await tagmanager.accounts.containers.workspaces.create_version({
@@ -81,7 +91,7 @@ const createVersion = async (argv: any) => {
 
 const listTags = async (argv: any) => {
     const auth = createAuth(argv)
-    const { accountId, containerId, workspaceId } = await getAccountInfo(argv, auth)
+    const { accountId, containerId, workspaceId } = argv
 
     const authClient = await auth.getClient();
     return await tagmanager.accounts.containers.workspaces.tags.list({
@@ -92,7 +102,7 @@ const listTags = async (argv: any) => {
 
 const listTriggers = async (argv: any) => {
     const auth = createAuth(argv)
-    const { accountId, containerId, workspaceId } = await getAccountInfo(argv, auth)
+    const { accountId, containerId, workspaceId } = argv
 
     const authClient = await auth.getClient();
     return await tagmanager.accounts.containers.workspaces.triggers.list({
@@ -103,7 +113,7 @@ const listTriggers = async (argv: any) => {
 
 const listTemplates = async (argv: any) => {
     const auth = createAuth(argv)
-    const { accountId, containerId, workspaceId } = await getAccountInfo(argv, auth)
+    const { accountId, containerId, workspaceId } = argv
 
     const authClient = await auth.getClient();
     return await tagmanager.accounts.containers.workspaces.templates.list({
@@ -114,7 +124,7 @@ const listTemplates = async (argv: any) => {
 
 const getTemplate = async (argv: any) => {
     const auth = createAuth(argv)
-    const { accountId, containerId, workspaceId } = await getAccountInfo(argv, auth)
+    const { accountId, containerId, workspaceId } = argv
 
     const authClient = await auth.getClient();
     return await tagmanager.accounts.containers.workspaces.templates.get({
@@ -150,6 +160,14 @@ async function main() {
             try {
                 const res = await createWorkspace(argv);
                 console.log(res.data.workspaceId)
+            } catch (e) {
+                console.error(e)
+                exit(3)
+            }
+        })
+        .command('deleteWorkspace', 'lists the objects of the given type', () => { }, async (argv: ListArgs) => {
+            try {
+                await deleteWorkspace(argv);
             } catch (e) {
                 console.error(e)
                 exit(3)
@@ -209,12 +227,14 @@ async function main() {
         .option('accountId', {
             alias: 'a',
             description: 'The GTM account Id',
-            type: 'string'
+            type: 'string',
+            demandOption: true,
         })
         .option('containerId', {
             alias: 'c',
             description: 'The GTM container Id',
-            type: 'string'
+            type: 'string',
+            demandOption: true,
         })
         .option('workspaceId', {
             alias: 'w',
